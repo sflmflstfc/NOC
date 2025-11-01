@@ -1,7 +1,5 @@
-# My Files
-
-- [index.html](index.html)
-- [about.html](about.html)
-- [report.pdf](report.pdf)
-- [script.js](script.js)
-- [style.css](style.css)
+https://sflmflstfc.github.io/sflmflstfc/
+https://sflmflstfc.github.io/EMI-Calculator/
+https://sflmflstfc.github.io/NOC/
+https://sflmflstfc.github.io/Document/
+https://sflmflstfc.github.io/customer-manager/
