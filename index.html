@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Loan NOC Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  margin: 40px;
+}
+.container {
+  max-width: 700px;
+  margin: auto;
+}
+label { display: block; margin-top: 8px; }
+input, select, textarea {
+  width: 100%;
+  padding: 6px;
+  margin-top: 3px;
+}
+button { margin: 10px 5px; padding: 8px 15px; cursor: pointer; }
+#noc-content {
+  margin-top: 160px; /* increased for larger letterhead */
+  line-height: 1.6;
+}
+.center { text-align: center; }
+.footer-note {
+  color: red;
+  font-style: italic;
+  text-align: center;
+  margin-top: 20px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Loan NOC Generator</h2>
+
+  <label>Customer Name</label>
+  <input id="name" placeholder="Enter customer name">
+
+  <label>Customer Address</label>
+  <textarea id="address" placeholder="Enter customer address" rows="2"></textarea>
+
+  <label>Loan Type</label>
+  <select id="loanType">
+    <option value="Personal Loan">Personal Loan</option>
+    <option value="Vehicle Loan">Vehicle Loan</option>
+    <option value="Mortgage Loan">Mortgage Loan</option>
+  </select>
+
+  <div id="vehicleFields" style="display:none;">
+    <label>Vehicle Model</label><input id="vehicleModel">
+    <label>Registration No.</label><input id="regNo">
+    <label>Chassis No.</label><input id="chassisNo">
+    <label>Engine No.</label><input id="engineNo">
+  </div>
+
+  <div id="propertyFields" style="display:none;">
+    <label>Property Details</label><textarea id="propertyDetails" rows="3"></textarea>
+  </div>
+
+  <label>Loan Account No</label>
+  <input id="loanAccount" placeholder="Enter loan account number">
+
+  <label>Loan Date</label>
+  <input type="date" id="loanDate">
+
+  <label>Finance Name</label>
+  <select id="finance">
+    <option value="Shree Mahalaxmi Finance and Leasing (R), Sindagi">Shree Mahalaxmi Finance and Leasing (R), Sindagi</option>
+    <option value="Saptagiri Finance and Leasing (R), Sindagi">Saptagiri Finance and Leasing (R), Sindagi</option>
+  </select>
+
+  <label>Issue Date</label>
+  <input type="date" id="issueDate">
+
+  <button onclick="generateNOC()">Preview</button>
+  <button onclick="downloadPDF()">Download PDF</button>
+  <button onclick="downloadWord()">Download Word</button>
+
+  <hr>
+  <div id="noc-content"></div>
+</div>
+
+<script>
+document.getElementById('loanType').addEventListener('change', function() {
+  const type = this.value;
+  document.getElementById('vehicleFields').style.display = (type === 'Vehicle Loan') ? 'block' : 'none';
+  document.getElementById('propertyFields').style.display = (type === 'Mortgage Loan') ? 'block' : 'none';
+});
+
+function formatDate(dateStr) {
+  if (!dateStr) return '________';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function generateNOC() {
+  const name = document.getElementById('name').value || '________';
+  const address = document.getElementById('address').value || '________';
+  const loanType = document.getElementById('loanType').value;
+  const loanAccount = document.getElementById('loanAccount').value || '________';
+  const finance = document.getElementById('finance').value;
+  const loanDate = formatDate(document.getElementById('loanDate').value);
+  const issueDate = formatDate(document.getElementById('issueDate').value);
+
+  let details = '';
+  if (loanType === 'Vehicle Loan') {
+    details = `<p>Vehicle Model: <b>${document.getElementById('vehicleModel').value || '________'}</b><br>
+    Registration No: <b>${document.getElementById('regNo').value || '________'}</b><br>
+    Chassis No: <b>${document.getElementById('chassisNo').value || '________'}</b><br>
+    Engine No: <b>${document.getElementById('engineNo').value || '________'}</b></p>`;
+  } else if (loanType === 'Mortgage Loan') {
+    details = `<p>Property Details: <b>${document.getElementById('propertyDetails').value || '________'}</b></p>`;
+  }
+
+  document.getElementById('noc-content').innerHTML = `
+  <h3 style="text-align:center; text-decoration:underline;">SUBJECT: LOAN CLEARANCE / NO DUES CERTIFICATE</h3>
+  <br><br>
+  <h3 style="text-align:center;">To Whomsoever It May Concern,</h3>
+  <p>This is to certify that Mr./Ms./M/s. <b>${name}</b>, residing at <b>${address}</b>, has availed a <b>${loanType}</b> from <b>${finance}</b> under Loan Account No. <b>${loanAccount}</b> dated <b>${loanDate}</b>.</p>
+  ${details}
+  <p>We hereby confirm that the said loan has been fully repaid and there are no dues pending towards <b>${finance}</b>. This certificate is issued upon request of the customer and serves as confirmation of no dues pending towards said loan account in our book of accounts.</p>
+  <p><b>Place:</b> Sindagi</p>
+  <p><b>Date:</b> ${issueDate}</p>
+  <br><br><br>
+  <div style="text-align:right; line-height:1.5;">
+    <b>For ${finance}</b><br>
+    (Seal & Signature)
+  </div>
+  <p class="footer-note">*** This NOC is valid for 90 days from the date of issuance.</p>`;
+}
+
+function downloadPDF() {
+  const name = document.getElementById('name').value.replace(/\s+/g, '_') || 'NOC';
+  const acc = document.getElementById('loanAccount').value || 'Account';
+  const element = document.getElementById('noc-content');
+  const opt = {
+    margin: [20, 20, 20, 20], // reduced to avoid clipping
+    filename: `NOC_${name}_${acc}.pdf`,
+    html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
+    jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+
+function downloadWord() {
+  const name = document.getElementById('name').value.replace(/\s+/g, '_') || 'NOC';
+  const acc = document.getElementById('loanAccount').value || 'Account';
+  const content = document.getElementById('noc-content').innerHTML;
+  const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
+    "xmlns:w='urn:schemas-microsoft-com:office:word' "+
+    "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>";
+  const footer = "</body></html>";
+  const source = header + content + footer;
+  const blob = new Blob(['\ufeff', source], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `NOC_${name}_${acc}.doc`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+</script>
+</body>
+</html>
