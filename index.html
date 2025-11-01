@@ -1,27 +1,86 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Loan NOC Generator</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
 <style>
 body {
   font-family: Arial, sans-serif;
   margin: 40px;
+  background: #f5f5f5;
 }
 .container {
   max-width: 700px;
   margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
-label { display: block; margin-top: 8px; }
+h2 {
+  color: #333;
+  border-bottom: 3px solid #4CAF50;
+  padding-bottom: 10px;
+}
+label { 
+  display: block; 
+  margin-top: 12px;
+  font-weight: bold;
+  color: #555;
+}
 input, select, textarea {
   width: 100%;
-  padding: 6px;
-  margin-top: 3px;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
-button { margin: 10px 5px; padding: 8px 15px; cursor: pointer; }
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+.button-group {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+button { 
+  padding: 10px 20px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+.btn-preview {
+  background: #2196F3;
+  color: white;
+}
+.btn-pdf {
+  background: #f44336;
+  color: white;
+}
+.btn-word {
+  background: #4CAF50;
+  color: white;
+}
 #noc-content {
-  margin-top: 160px; /* increased for larger letterhead */
+  margin-top: 30px;
+  padding-top: 120px;
+  padding-left: 40px;
+  padding-right: 40px;
+  padding-bottom: 20px;
+  background: white;
+  min-height: 400px;
+  position: relative;
   line-height: 1.6;
 }
 .center { text-align: center; }
@@ -30,73 +89,97 @@ button { margin: 10px 5px; padding: 8px 15px; cursor: pointer; }
   font-style: italic;
   text-align: center;
   margin-top: 20px;
+  font-size: 14px;
+}
+.barcode-container {
+  text-align: center;
+  margin-top: 15px;
+  padding: 10px;
+  border-top: 1px dashed #ccc;
+}
+.barcode-container svg {
+  max-width: 280px;
+  height: auto;
+}
+.hidden {
+  display: none;
 }
 </style>
 </head>
 <body>
 <div class="container">
-  <h2>Loan NOC Generator</h2>
+  <h2>📄 Loan NOC Generator</h2>
 
-  <label>Customer Name</label>
+  <label>Customer Name *</label>
   <input id="name" placeholder="Enter customer name">
 
-  <label>Customer Address</label>
+  <label>Customer Address *</label>
   <textarea id="address" placeholder="Enter customer address" rows="2"></textarea>
 
-  <label>Loan Type</label>
+  <label>Loan Type *</label>
   <select id="loanType">
     <option value="Personal Loan">Personal Loan</option>
     <option value="Vehicle Loan">Vehicle Loan</option>
     <option value="Mortgage Loan">Mortgage Loan</option>
   </select>
 
-  <div id="vehicleFields" style="display:none;">
-    <label>Vehicle Model</label><input id="vehicleModel">
-    <label>Registration No.</label><input id="regNo">
-    <label>Chassis No.</label><input id="chassisNo">
-    <label>Engine No.</label><input id="engineNo">
+  <div id="vehicleFields" class="hidden">
+    <label>Vehicle Model</label><input id="vehicleModel" placeholder="e.g., Honda City">
+    <label>Registration No.</label><input id="regNo" placeholder="e.g., KA-01-AB-1234">
+    <label>Chassis No.</label><input id="chassisNo" placeholder="Enter chassis number">
+    <label>Engine No.</label><input id="engineNo" placeholder="Enter engine number">
   </div>
 
-  <div id="propertyFields" style="display:none;">
-    <label>Property Details</label><textarea id="propertyDetails" rows="3"></textarea>
+  <div id="propertyFields" class="hidden">
+    <label>Property Details</label>
+    <textarea id="propertyDetails" rows="3" placeholder="Enter property details (address, survey number, etc.)"></textarea>
   </div>
 
-  <label>Loan Account No</label>
+  <label>Loan Account No *</label>
   <input id="loanAccount" placeholder="Enter loan account number">
 
-  <label>Loan Date</label>
+  <label>Loan Date *</label>
   <input type="date" id="loanDate">
 
-  <label>Finance Name</label>
+  <label>Finance Name *</label>
   <select id="finance">
     <option value="Shree Mahalaxmi Finance and Leasing (R), Sindagi">Shree Mahalaxmi Finance and Leasing (R), Sindagi</option>
     <option value="Saptagiri Finance and Leasing (R), Sindagi">Saptagiri Finance and Leasing (R), Sindagi</option>
   </select>
 
-  <label>Issue Date</label>
+  <label>Issue Date *</label>
   <input type="date" id="issueDate">
 
-  <button onclick="generateNOC()">Preview</button>
-  <button onclick="downloadPDF()">Download PDF</button>
-  <button onclick="downloadWord()">Download Word</button>
+  <div class="button-group">
+    <button class="btn-preview" onclick="generateNOC()">👁️ Preview NOC</button>
+    <button class="btn-pdf" onclick="downloadPDF()">📥 Download PDF</button>
+    <button class="btn-word" onclick="downloadWord()">📄 Download Word</button>
+  </div>
 
-  <hr>
+  <hr style="margin: 30px 0; border: none; border-top: 2px solid #eee;">
   <div id="noc-content"></div>
 </div>
 
 <script>
+// Show/hide fields based on loan type
 document.getElementById('loanType').addEventListener('change', function() {
   const type = this.value;
-  document.getElementById('vehicleFields').style.display = (type === 'Vehicle Loan') ? 'block' : 'none';
-  document.getElementById('propertyFields').style.display = (type === 'Mortgage Loan') ? 'block' : 'none';
+  document.getElementById('vehicleFields').classList.toggle('hidden', type !== 'Vehicle Loan');
+  document.getElementById('propertyFields').classList.toggle('hidden', type !== 'Mortgage Loan');
 });
 
+// Format date to DD-MMM-YYYY
 function formatDate(dateStr) {
   if (!dateStr) return '________';
   const d = new Date(dateStr);
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const day = d.getDate().toString().padStart(2, '0');
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = months[d.getMonth()];
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
 }
 
+// Generate NOC preview
 function generateNOC() {
   const name = document.getElementById('name').value || '________';
   const address = document.getElementById('address').value || '________';
@@ -108,54 +191,129 @@ function generateNOC() {
 
   let details = '';
   if (loanType === 'Vehicle Loan') {
-    details = `<p>Vehicle Model: <b>${document.getElementById('vehicleModel').value || '________'}</b><br>
-    Registration No: <b>${document.getElementById('regNo').value || '________'}</b><br>
-    Chassis No: <b>${document.getElementById('chassisNo').value || '________'}</b><br>
-    Engine No: <b>${document.getElementById('engineNo').value || '________'}</b></p>`;
+    const model = document.getElementById('vehicleModel').value || '________';
+    const regNo = document.getElementById('regNo').value || '________';
+    const chassisNo = document.getElementById('chassisNo').value || '________';
+    const engineNo = document.getElementById('engineNo').value || '________';
+    details = `<p style="margin: 10px 0;"><b>Vehicle Details:</b><br>
+    Model: <b>${model}</b><br>
+    Registration No: <b>${regNo}</b><br>
+    Chassis No: <b>${chassisNo}</b><br>
+    Engine No: <b>${engineNo}</b></p>`;
   } else if (loanType === 'Mortgage Loan') {
-    details = `<p>Property Details: <b>${document.getElementById('propertyDetails').value || '________'}</b></p>`;
+    const propDetails = document.getElementById('propertyDetails').value || '________';
+    details = `<p style="margin: 10px 0;"><b>Property Details:</b><br>${propDetails}</p>`;
   }
 
   document.getElementById('noc-content').innerHTML = `
-  <h3 style="text-align:center; text-decoration:underline;">SUBJECT: LOAN CLEARANCE / NO DUES CERTIFICATE</h3>
-  <br><br>
-  <h3 style="text-align:center;">To Whomsoever It May Concern,</h3>
-  <p>This is to certify that Mr./Ms./M/s. <b>${name}</b>, residing at <b>${address}</b>, has availed a <b>${loanType}</b> from <b>${finance}</b> under Loan Account No. <b>${loanAccount}</b> dated <b>${loanDate}</b>.</p>
+  <h3 style="text-align:center; text-decoration:underline; margin: 15px 0;">LOAN CLEARANCE / NO DUES CERTIFICATE</h3>
+  
+  <h3 style="text-align:center; margin: 15px 0;">To Whomsoever It May Concern,</h3>
+  
+  <p style="text-align: justify; margin: 10px 0;">This is to certify that Mr./Ms./M/s. <b>${name}</b>, residing at <b>${address}</b>, has availed a <b>${loanType}</b> from <b>${finance}</b> under Loan Account No. <b>${loanAccount}</b> dated <b>${loanDate}</b>.</p>
+  
   ${details}
-  <p>We hereby confirm that the said loan has been fully repaid and there are no dues pending towards <b>${finance}</b>. This certificate is issued upon request of the customer and serves as confirmation of no dues pending towards said loan account in our book of accounts.</p>
-  <p><b>Place:</b> Sindagi</p>
-  <p><b>Date:</b> ${issueDate}</p>
-  <br><br><br>
-  <div style="text-align:right; line-height:1.5;">
-    <b>For ${finance}</b><br>
-    (Seal & Signature)
+  
+  <p style="text-align: justify; margin: 10px 0;">We hereby confirm that the said loan has been <b>fully repaid</b> and there are <b>no dues pending</b> towards <b>${finance}</b>. This certificate is issued upon request of the customer and serves as confirmation of no dues pending towards said loan account in our book of accounts.</p>
+  
+  <div style="margin-top: 20px;">
+    <p style="margin: 3px 0;"><b>Place:</b> Sindagi</p>
+    <p style="margin: 3px 0;"><b>Date:</b> ${issueDate}</p>
   </div>
-  <p class="footer-note">*** This NOC is valid for 90 days from the date of issuance.</p>`;
+  
+  <div style="text-align:right; margin-top: 40px; line-height: 1.6;">
+    <b>For ${finance}</b><br>
+    <br><br>
+    <b>(Authorized Signatory)</b><br>
+    <span style="font-size: 12px;">[Seal & Signature]</span>
+  </div>
+  
+  <p class="footer-note">*** This NOC is valid for 90 days from the date of issuance. ***</p>
+  
+  <div class="barcode-container">
+    <svg id="barcode"></svg>
+    <div id="barcodeText" style="font-size: 11px; color: #333; margin-top: 5px; font-weight: bold;"></div>
+  </div>`;
+  
+  // Generate barcode with simple format
+  const financeCode = finance.includes('Mahalaxmi') ? 'MFL' : 'SFL';
+  let loanTypeCode = 'PL';
+  if (loanType === 'Vehicle Loan') loanTypeCode = 'VCL';
+  else if (loanType === 'Mortgage Loan') loanTypeCode = 'MTG';
+  
+  // Get customer initials (first letter of each word)
+  const customerInitials = name.split(' ')
+    .filter(n => n.length > 0)
+    .map(n => n.charAt(0).toUpperCase())
+    .join('');
+  
+  // Simple format: MFL|GGD|VCL|123456
+  const barcodeData = `${financeCode}|${customerInitials}|${loanTypeCode}|${loanAccount}`;
+  
+  // Display barcode text below
+  document.getElementById('barcodeText').textContent = barcodeData;
+  
+  try {
+    JsBarcode("#barcode", barcodeData, {
+      format: "CODE128",
+      width: 1.5,
+      height: 40,
+      displayValue: false,
+      margin: 5
+    });
+  } catch(e) {
+    console.error('Barcode generation error:', e);
+  }
 }
 
+// Download as PDF
 function downloadPDF() {
+  if (!document.getElementById('noc-content').innerHTML) {
+    alert('Please preview the NOC first!');
+    return;
+  }
+  
+  if (typeof html2pdf === 'undefined') {
+    alert('PDF library is loading... Please try again in a moment.');
+    return;
+  }
+  
   const name = document.getElementById('name').value.replace(/\s+/g, '_') || 'NOC';
   const acc = document.getElementById('loanAccount').value || 'Account';
   const element = document.getElementById('noc-content');
+  
   const opt = {
-    margin: [20, 20, 20, 20], // reduced to avoid clipping
+    margin: [5, 15, 15, 15],
     filename: `NOC_${name}_${acc}.pdf`,
-    html2canvas: { scale: 3, useCORS: true, scrollY: 0 },
-    jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowHeight: element.scrollHeight },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all'] }
   };
-  html2pdf().set(opt).from(element).save();
+  
+  html2pdf().set(opt).from(element).save().catch(err => {
+    console.error('PDF Error:', err);
+    alert('PDF download failed. Please try again.');
+  });
 }
 
+// Download as Word
 function downloadWord() {
+  if (!document.getElementById('noc-content').innerHTML) {
+    alert('Please preview the NOC first!');
+    return;
+  }
+  
   const name = document.getElementById('name').value.replace(/\s+/g, '_') || 'NOC';
   const acc = document.getElementById('loanAccount').value || 'Account';
   const content = document.getElementById('noc-content').innerHTML;
-  const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' "+
-    "xmlns:w='urn:schemas-microsoft-com:office:word' "+
-    "xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'></head><body>";
+  
+  const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+    "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+    "xmlns='http://www.w3.org/TR/REC-html40'>" +
+    "<head><meta charset='utf-8'><title>NOC Document</title></head><body>";
   const footer = "</body></html>";
   const source = header + content + footer;
+  
   const blob = new Blob(['\ufeff', source], { type: 'application/msword' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -164,7 +322,11 @@ function downloadWord() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
+
+// Set today's date as default
+document.getElementById('issueDate').valueAsDate = new Date();
 </script>
 </body>
 </html>
