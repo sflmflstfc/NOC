@@ -1,6 +1,6 @@
 # Live Project Links
 
-- [Main Site](https://sflmflstfc.github.io/sflmflstfc/)
+- [OTS](https://sflmflstfc.github.io/sflmflstfc/)
 - [EMI Calculator](https://sflmflstfc.github.io/EMI-Calculator/)
 - [NOC](https://sflmflstfc.github.io/NOC/)
 - [Document](https://sflmflstfc.github.io/Document/)
